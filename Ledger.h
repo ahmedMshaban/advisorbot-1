@@ -19,11 +19,9 @@ class Ledger {
     Entry transactionHandler(Entry bid, Entry ask);
     double getMaxPrice(string product,
                        string timestamp,
-                       int steps,
                        EntryType type);
     double getMinPrice(string product,
                        string timestamp,
-                       int steps,
                        EntryType type);
     double getAvgPrice(string product,
                        string timestamp,

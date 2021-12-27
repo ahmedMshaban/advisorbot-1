@@ -19,8 +19,8 @@ vector<Entry> CSVReader::readCSV(string fileName) {
     if (csvFile.is_open()) {
         while (getline(csvFile, line)) {
             try {
-                Entry obe = stringsToOBE(tokenise(line, ','));
-                entries.push_back(obe);
+                Entry entry = stringsToOBE(tokenise(line, ','));
+                entries.push_back(entry);
             } catch (const exception& e) {
                 cout << "CSVReader::readCSV bad data" << endl;
             }

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <map>
 #include <string>
+#include <iostream>
 
 #include "CSVReader.h"
 
@@ -123,10 +124,10 @@ vector<Entry> Ledger::matchEntries(string timestamp) {
                         i--;
                         break;
                     }
-                }
-                else {
+                } else {
                     // Otherwise, we break the bids loop
-                    // Since bids are sorted by highest first, if the first bid does not match, subsequent bids will definitely not match
+                    // Since bids are sorted by highest first, if the first bid
+                    // does not match, subsequent bids will definitely not match
                     break;
                 }
             }
@@ -135,28 +136,76 @@ vector<Entry> Ledger::matchEntries(string timestamp) {
 }
 
 Entry Ledger::transactionHandler(Entry bid, Entry ask) {
-    Entry sale {ask.price,
-                0,
-                ask.timestamp,
-                ask.product,
-                EntryType::sale,
-                false};
+    Entry sale{ask.price,
+               0,
+               ask.timestamp,
+               ask.product,
+               EntryType::sale,
+               false};
 
     if (bid.isUser == true) {
         sale.isUser = true;
         // Deduct transaction amount from user's wallet
-    }
-    else if (ask.isUser == true) {
+    } else if (ask.isUser == true) {
         sale.isUser = true;
         // Add transaction amount to user's wallet
     }
 
     if (ask.amount >= bid.amount) {
         sale.amount = bid.amount;
-    }
-    else if (ask.amount < bid.amount) {
+    } else if (ask.amount < bid.amount) {
         sale.amount = ask.amount;
     }
 
     return sale;
 }
+
+double Ledger::getMaxPrice(string product,
+                           string timestamp,
+                           EntryType type) {
+    double price;
+    // Retrieve orders according to filters
+    vector<Entry> orders = getOrders(type, product, timestamp);
+    // Set price to first order in orders vector
+    price = orders[0].price;
+
+    // Loop over orders
+    for (Entry const& order : orders) {
+        // Compare price
+        if (order.price > price) {
+            price = order.price;
+        }
+    }
+
+    return price;
+}
+
+double Ledger::getMinPrice(string product,
+                           string timestamp,
+                           EntryType type) {
+    double price;
+    // Retrieve orders according to filters
+    vector<Entry> orders = getOrders(type, product, timestamp);
+    // Set price to first order in orders vector
+    price = orders[0].price;
+
+    // Loop over orders
+    for (Entry const& order : orders) {
+        // Compare price
+        if (order.price < price) {
+            price = order.price;
+        }
+    }
+
+    return price;
+}
+
+double Ledger::getAvgPrice(string product,
+                           string timestamp,
+                           int steps,
+                           EntryType type) {}
+
+double Ledger::predictPrice(string product,
+                            string timestamp,
+                            int steps,
+                            EntryType type) {}

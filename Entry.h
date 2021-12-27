@@ -7,7 +7,8 @@ using namespace std;
 enum class EntryType {
     bid,
     ask,
-    sale
+    sale,
+    invalid
 };
 
 class Entry {

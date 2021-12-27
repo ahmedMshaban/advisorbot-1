@@ -1,11 +1,13 @@
+#include "AdvisorBot.h"
+
 #include <algorithm>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 
-#include "AdvisorBot.h"
 #include "CSVReader.h"
+#include "Entry.h"
 
 using namespace std;
 
@@ -14,8 +16,11 @@ AdvisorBot::AdvisorBot() {}
 void AdvisorBot::init() {
     isRunning = true;
     vector<string> command;
+    currentTime = ledger.getEarliestTime();
+    products = ledger.getProducts();
 
-    advisorPrint("Hello, how can I help you today?");
+    advisorPrint({"Hello, how can I help you today?",
+                  "Enter \"help\" to see a list of available commands"});
 
     while (isRunning == true) {
         command = getUserInput();
@@ -23,119 +28,203 @@ void AdvisorBot::init() {
     }
 }
 
-void AdvisorBot::advisorPrint(string s) {
-    cout << "AdvisorBot: " << s << endl;
+void AdvisorBot::advisorPrint(vector<string> strings) {
+    cout << endl;
+
+    for (const string& s : strings) {
+        cout << "AdvisorBot: " << s << endl;
+    }
+
+    cout << endl;
 }
 
-void AdvisorBot::printMenu() {
-
-}
+void AdvisorBot::printMenu() {}
 
 vector<string> AdvisorBot::getUserInput() {
     string input;
+    cout << "User: ";
     getline(cin, input);
     vector<string> command = CSVReader::tokenise(input, ' ');
 
     return command;
 }
 
-void AdvisorBot::processCommand (vector<string> command) {
-    enum class commands {
-        invalid,
-        help,
-        prod,
-        min,
-        max,
-        avg,
-        predict,
-        time,
-        step,
-        exit
-    };
-
-    static map<string, commands> cmdMap {
-        {" ", commands::invalid},
-        {"help", commands::help},
-        {"prod", commands::prod},
-        {"min", commands::min},
-        {"max", commands::max},
-        {"avg", commands::avg},
-        {"predict", commands::predict},
-        {"time", commands::time},
-        {"step", commands::step},
-        {"exit", commands::exit}
-    };
-    
+void AdvisorBot::processCommand(vector<string> command) {
     switch (cmdMap[command[0]]) {
         case commands::help:
-            if (command.size() == 1) {
-                cout << command[0] << endl;
-                advisorPrint("The available commmands are help, help <cmd>, prod, min, max, avg, predict, time, step, exit");
-            } else if (command.size() == 2) {
-                switch (cmdMap[command[1]]) {
-                    case commands::prod:
-                        advisorPrint("Lists all available products");
-                        advisorPrint("Usage: prod");
-                        break;
-                    case commands::min:
-                        advisorPrint("Lists current minimum bid/ask price of desired product");
-                        advisorPrint("Usage: min <product> <bid/ask>");
-                        break;
-                    case commands::max:
-                        advisorPrint("Lists current maximum bid/ask price of desired product");
-                        advisorPrint("Usage: max <product> <bid/ask>");
-                        break;
-                    case commands::avg:
-                        advisorPrint("Lists average bid/ask price of desired product over the desired number of timesteps");
-                        advisorPrint("Usage: avg <product> <ask/bid> <timesteps>");
-                        break;
-                    case commands::predict:
-                        advisorPrint("Predicts the maximum/minimum bid/ask of desired product");
-                        advisorPrint("Usage: predict <max/min> <product> <ask/bid>");
-                        break;
-                    case commands::time:
-                        advisorPrint("Tells you the current timeframe the program is in");
-                        advisorPrint("Usage: time");
-                        break;
-                    case commands::step:
-                        advisorPrint("Moves to the next timestep");
-                        advisorPrint("Usage: step");
-                        break;
-                    case commands::exit:
-                        advisorPrint("Exits program");
-                        advisorPrint("Usage: exit");
-                        break;
-                }
-            }
+            printHelp(command);
             break;
 
         case commands::prod:
-            if (command.size() == 1) {
-                printProd();
-            }
+            printProd(command);
             break;
 
         case commands::min:
-            if (command.size() == 3) {
-                
-            }
+            printMin(command);
+            break;
+
+        case commands::max:
+            printMax(command);
+            break;
+
+        case commands::exit:
+            exit(command);
             break;
 
         default:
-            cout << endl;
-            cout << "Please enter a valid command (case sensitive)" << endl;
+            advisorPrint({"Please enter a valid command (case sensitive)"});
     }
 }
 
-void AdvisorBot::printProd() {
-    string s;
-    vector<string> products = ledger.getProducts();
-    // Append each product and a seperator to the string
-    for (string& prod : products) {
-        s.append(prod + ", ");
+void AdvisorBot::printHelp(vector<string> command) {
+    // Input command was "help"
+    if (command.size() == 1) {
+        advisorPrint(
+            {"The available commmands are help, help <cmd>, prod, min, max, "
+             "avg, predict, time, step, exit"});
     }
-    // Remove the last ", " at the end of the string
-    s.erase(s.end() - 2, s.end());
+    // Input command was "help <cmd>"
+    else if (command.size() == 2) {
+        // Switch using the 2nd string in command
+        switch (cmdMap[command[1]]) {
+            case commands::help:
+                advisorPrint({"Displays available commands", "Usage: help"});
+                break;
+            case commands::prod:
+                advisorPrint({"Lists all available products", "Usage: prod"});
+                break;
+            case commands::min:
+                advisorPrint(
+                    {"Lists current minimum bid/ask price of desired product",
+                     "Usage: min <product> <bid/ask>"});
+                break;
+            case commands::max:
+                advisorPrint(
+                    {"Lists current maximum bid/ask price of desired product",
+                     "Usage: max <product> <bid/ask>"});
+                break;
+            case commands::avg:
+                advisorPrint(
+                    {"Lists average bid/ask price of desired product over the "
+                     "desired number of timesteps",
+                     "Usage: avg <product> <ask/bid> <timesteps>"});
+                break;
+            case commands::predict:
+                advisorPrint(
+                    {"Predicts the maximum/minimum bid/ask of desired product",
+                     "Usage: predict <max/min> <product> <ask/bid>"});
+                break;
+            case commands::time:
+                advisorPrint(
+                    {"Tells you the current timeframe the program is in",
+                     "Usage: time"});
+                break;
+            case commands::step:
+                advisorPrint({"Moves to the next timestep", "Usage: step"});
+                break;
+            case commands::exit:
+                advisorPrint({"Exits program", "Usage: exit"});
+                break;
+            // Invalid commands will default to commands::invalid
+            default:
+                advisorPrint({"Please enter a valid command",
+                              "Valid help commands are help, prod, min, max, "
+                              "avg, predict, time, step, exit"});
+        }
+    }
+}
 
-    advisorPrint(s);
+void AdvisorBot::printProd(vector<string> command) {
+    // Input command was "prod"
+    if (command.size() == 1) {
+        // Initialise output string and retrieve products
+        string s;
+        // Append each product and a seperator to the output string
+        for (string& prod : products) {
+            s.append(prod + ", ");
+        }
+        // Remove the last seperator at the end of the string
+        s.erase(s.end() - 2, s.end());
+
+        advisorPrint({s});
+    } else {
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help prod\" to see valid uses"});
+    }
+}
+
+void AdvisorBot::printMin(vector<string> command) {
+    double price;
+
+    // Check that command contains 3 keywords
+    if (command.size() == 3) {
+        // Convert type string to entry type
+        EntryType type = Entry::stringToEntryType(command[2]);
+        // https://www.delftstack.com/howto/cpp/cpp-find-element-in-vector/
+        // Check if 2nd argument in command is a valid product
+        if (any_of(products.begin(),
+                   products.end(),
+                   [&](const string& s) { return s == command[1]; })
+                // Check for valid entry type
+                && type == EntryType::ask ||
+            type == EntryType::bid) {
+            price = ledger.getMinPrice(command[1], currentTime, type);
+
+            advisorPrint({"The minimum price of " + command[1] + " is " +
+                          to_string(price)});
+        }
+        // If invalid product or entry type
+        else {
+            advisorPrint({"Please enter a valid command",
+                          "Use \"help min\" to see valid uses"});
+        }
+    }
+    // Command does not contain 3 keywords -> invalid input
+    else {
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help min\" to see valid uses"});
+    }
+}
+
+void AdvisorBot::printMax(vector<string> command) {
+    double price;
+
+    // Check that command contains 3 keywords
+    if (command.size() == 3) {
+        // Convert type string to entry type
+        EntryType type = Entry::stringToEntryType(command[2]);
+        // https://www.delftstack.com/howto/cpp/cpp-find-element-in-vector/
+        // Check if 2nd argument in command is a valid product
+        if (any_of(products.begin(),
+                   products.end(),
+                   [&](const string& s) { return s == command[1]; })
+                // Check for valid entry type
+                && type == EntryType::ask ||
+            type == EntryType::bid) {
+            price = ledger.getMaxPrice(command[1], currentTime, type);
+
+            advisorPrint({"The maximum price of " + command[1] + " is " +
+                          to_string(price)});
+        }
+        // If invalid product or entry type
+        else {
+            advisorPrint({"Please enter a valid command",
+                          "Use \"help max\" to see valid uses"});
+        }
+    }
+    // Command does not contain 3 keywords -> invalid input
+    else {
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help max\" to see valid uses"});
+    }
+}
+
+void AdvisorBot::exit(vector<string> command) {
+    if (command.size() == 1) {
+        advisorPrint({"Thank you for using AdvisorBot!"});
+        isRunning = false;
+    } else {
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help exit\" to see valid uses"});
+    }
 }

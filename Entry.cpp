@@ -20,4 +20,7 @@ EntryType Entry::stringToEntryType(string s) {
     if (s == "bid") {
         return EntryType::bid;
     }
+    else {
+        return EntryType::invalid;
+    }
 }
