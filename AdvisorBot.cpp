@@ -214,17 +214,11 @@ void AdvisorBot::printMax(vector<string> command) {
 void AdvisorBot::printAvg(vector<string> command) {
     // Check that command contains 4 keywords
     if (command.size() == 4) {
-        // Remove
-        cout << "Command contains 4 keywords" << endl;
-
         double avg;
         EntryType type = Entry::stringToEntryType(command[2]);
 
         // Validate command args
         if (validProd(command[1]) && validType(type) && validInt(command[3])) {
-            // Remove
-            cout << "Command validated" << endl;
-
             int steps = stoi(command[3]);
 
 
@@ -232,24 +226,17 @@ void AdvisorBot::printAvg(vector<string> command) {
                 advisorPrint({"Invalid number of time steps entered", "You may only obtain the average up to the beginning of the ledger"});
             }
             else {
-                // Remove
-                cout << "Valid number of steps entered" << endl;
-
                 // Get timestamp string of the starting time
                 string startTime = ledger.timesteps[currentTimeIndex - steps];
                 // Get avg
                 avg = ledger.getAvgPrice(command[1], startTime, currentTime, type);
 
-                // Remove
-                cout << "Average obtained" << endl;
-
-                advisorPrint({"The average price of " + command[1] + " over the last " + to_string(steps) + " steps is: " + to_string(avg)});
+                advisorPrint({"The average " + command[2] + " price of " + command[1] + " over the last " + to_string(steps) + " steps is: " + to_string(avg)});
             }
         }
     }
     // Command does not contain 4 keywords -> invalid input
     else {
-        cout << to_string(command.size()) << endl;
         advisorPrint({"Please enter a valid command",
                       "Use \"help avg\" to see valid uses"});
     }

@@ -195,12 +195,12 @@ double Ledger::getAvgPrice(string product,
         // Find the starting index in the entries vector
         int startIndex = distance(entries.begin(), find_if(entries.begin(), entries.end(), [&] (const Entry& e) { return e.timestamp == startTime; }));
 
-        int sum = 0;
+        double sum = 0;
         int elems = 0;
 
         // Loop over the entries vector, beginning at the starting index, and ending when the timestamp of the entry exceeds the current time
         for (int i = startIndex; entries[i].timestamp <= endTime; i++) {
-            if (entries[i].orderType == type) {
+            if (entries[i].orderType == type && entries[i].product == product) {
                 sum += entries[i].price;
                 elems++;
             }
