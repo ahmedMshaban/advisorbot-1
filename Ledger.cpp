@@ -6,28 +6,16 @@
 #include <iostream>
 
 #include "CSVReader.h"
+#include "AdvisorBot.h"
 
 using namespace std;
 
 /** Generate ledger from csv file */
-Ledger::Ledger(string filename) { entries = CSVReader::readCSV(filename); }
-
-/** Retrieves a list of all existing products */
-vector<string> Ledger::getProducts() {
-    vector<string> products;
-    map<string, bool> prodMap;
-
-    // Create entry for each product and set value to true
-    for (Entry& e : entries) {
-        prodMap[e.product] = true;
-    }
-
-    // Push eahc key of prodmap into products vector
-    for (auto const& e : prodMap) {
-        products.push_back(e.first);
-    }
-
-    return products;
+Ledger::Ledger(string filename) {
+    entries = CSVReader::readCSV(filename);
+    // products = getProducts();
+    // timesteps = getTimesteps();
+    storeProdAndTimesteps();
 }
 
 /** Retrieve all orders according to parameters set */
@@ -78,7 +66,7 @@ void Ledger::inputEntry(Entry order) {
 
 vector<Entry> Ledger::matchEntries(string timestamp) {
     // For each product
-    for (string& product : getProducts()) {
+    for (string& product : products) {
         vector<Entry> sales;
 
         // Get bids and asks for the product
@@ -201,11 +189,54 @@ double Ledger::getMinPrice(string product,
 }
 
 double Ledger::getAvgPrice(string product,
-                           string timestamp,
-                           int steps,
-                           EntryType type) {}
+                           string startTime,
+                           string endTime,
+                           EntryType type) {
+        // Find the starting index in the entries vector
+        int startIndex = distance(entries.begin(), find_if(entries.begin(), entries.end(), [&] (const Entry& e) { return e.timestamp == startTime; }));
+
+        int sum = 0;
+        int elems = 0;
+
+        // Loop over the entries vector, beginning at the starting index, and ending when the timestamp of the entry exceeds the current time
+        for (int i = startIndex; entries[i].timestamp <= endTime; i++) {
+            if (entries[i].orderType == type) {
+                sum += entries[i].price;
+                elems++;
+            }
+        }
+
+        double avg = sum/elems;
+        
+        return avg;
+    }
+
+// Find index of first entry in entries
+
 
 double Ledger::predictPrice(string product,
                             string timestamp,
                             int steps,
                             EntryType type) {}
+
+/** Retrieves a vector of all existing timesteps */
+void Ledger::storeProdAndTimesteps() {
+    map<string, bool> timeMap;
+    map<string, bool> prodMap;
+
+    // Generate map for both
+    for (Entry& e : entries) {
+        timeMap[e.timestamp] = true;
+        prodMap[e.product] = true;
+    }
+
+    // Push timesteps
+    for (auto const& e : timeMap) {
+        timesteps.push_back(e.first);
+    }
+
+    // Push products
+    for (auto const& e : prodMap) {
+        products.push_back(e.first);
+    }
+}

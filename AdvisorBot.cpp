@@ -17,7 +17,7 @@ void AdvisorBot::init() {
     isRunning = true;
     vector<string> command;
     currentTime = ledger.getEarliestTime();
-    products = ledger.getProducts();
+    currentTimeIndex = 0;
 
     advisorPrint({"Hello, how can I help you today?",
                   "Enter \"help\" to see a list of available commands"});
@@ -65,6 +65,10 @@ void AdvisorBot::processCommand(vector<string> command) {
 
         case commands::max:
             printMax(command);
+            break;
+
+        case commands::avg:
+            printAvg(command);
             break;
 
         case commands::exit:
@@ -140,7 +144,7 @@ void AdvisorBot::printProd(vector<string> command) {
         // Initialise output string and retrieve products
         string s;
         // Append each product and a seperator to the output string
-        for (string& prod : products) {
+        for (string& prod : ledger.products) {
             s.append(prod + ", ");
         }
         // Remove the last seperator at the end of the string
@@ -160,14 +164,8 @@ void AdvisorBot::printMin(vector<string> command) {
     if (command.size() == 3) {
         // Convert type string to entry type
         EntryType type = Entry::stringToEntryType(command[2]);
-        // https://www.delftstack.com/howto/cpp/cpp-find-element-in-vector/
-        // Check if 2nd argument in command is a valid product
-        if (any_of(products.begin(),
-                   products.end(),
-                   [&](const string& s) { return s == command[1]; })
-                // Check for valid entry type
-                && type == EntryType::ask ||
-            type == EntryType::bid) {
+        // Validate command args
+        if (validProd(command[1]) && validType(type)) {
             price = ledger.getMinPrice(command[1], currentTime, type);
 
             advisorPrint({"The minimum price of " + command[1] + " is " +
@@ -193,14 +191,8 @@ void AdvisorBot::printMax(vector<string> command) {
     if (command.size() == 3) {
         // Convert type string to entry type
         EntryType type = Entry::stringToEntryType(command[2]);
-        // https://www.delftstack.com/howto/cpp/cpp-find-element-in-vector/
-        // Check if 2nd argument in command is a valid product
-        if (any_of(products.begin(),
-                   products.end(),
-                   [&](const string& s) { return s == command[1]; })
-                // Check for valid entry type
-                && type == EntryType::ask ||
-            type == EntryType::bid) {
+        // Validate command arguments
+        if (validProd(command[1]) && validType(type)) {
             price = ledger.getMaxPrice(command[1], currentTime, type);
 
             advisorPrint({"The maximum price of " + command[1] + " is " +
@@ -219,6 +211,50 @@ void AdvisorBot::printMax(vector<string> command) {
     }
 }
 
+void AdvisorBot::printAvg(vector<string> command) {
+    // Check that command contains 4 keywords
+    if (command.size() == 4) {
+        // Remove
+        cout << "Command contains 4 keywords" << endl;
+
+        double avg;
+        EntryType type = Entry::stringToEntryType(command[2]);
+
+        // Validate command args
+        if (validProd(command[1]) && validType(type) && validInt(command[3])) {
+            // Remove
+            cout << "Command validated" << endl;
+
+            int steps = stoi(command[3]);
+
+
+            if (steps > currentTimeIndex) {
+                advisorPrint({"Invalid number of time steps entered", "You may only obtain the average up to the beginning of the ledger"});
+            }
+            else {
+                // Remove
+                cout << "Valid number of steps entered" << endl;
+
+                // Get timestamp string of the starting time
+                string startTime = ledger.timesteps[currentTimeIndex - steps];
+                // Get avg
+                avg = ledger.getAvgPrice(command[1], startTime, currentTime, type);
+
+                // Remove
+                cout << "Average obtained" << endl;
+
+                advisorPrint({"The average price of " + command[1] + " over the last " + to_string(steps) + " steps is: " + to_string(avg)});
+            }
+        }
+    }
+    // Command does not contain 4 keywords -> invalid input
+    else {
+        cout << to_string(command.size()) << endl;
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help avg\" to see valid uses"});
+    }
+}
+
 void AdvisorBot::exit(vector<string> command) {
     if (command.size() == 1) {
         advisorPrint({"Thank you for using AdvisorBot!"});
@@ -227,4 +263,25 @@ void AdvisorBot::exit(vector<string> command) {
         advisorPrint({"Please enter a valid command",
                       "Use \"help exit\" to see valid uses"});
     }
+}
+
+bool AdvisorBot::validProd(string prod) {
+    // https://www.delftstack.com/howto/cpp/cpp-find-element-in-vector/
+    return any_of(ledger.products.begin(),
+                  ledger.products.end(),
+                  [&](const string& s) { return s == prod; });
+}
+
+bool AdvisorBot::validType(EntryType type) {
+    return  (type == EntryType::ask || type == EntryType::bid);
+}
+
+bool AdvisorBot::validInt(string numString) {
+    // Loop over each char in numString
+    for (char const& c : numString) {
+        // If char in string is not digit, string is not a valid int
+        if (isdigit(c) == 0) return false;
+    }
+
+    return true;
 }

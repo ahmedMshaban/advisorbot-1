@@ -10,7 +10,9 @@ using namespace std;
 class Ledger {
    public:
     Ledger(string filename);
-    vector<string> getProducts();
+    /** Vector of available products */
+    vector<string> products;
+    vector<string> timesteps;
     vector<Entry> getOrders(EntryType type, string product, string timestamp);
     string getEarliestTime();
     string getNextTime(string timestamp);
@@ -24,8 +26,8 @@ class Ledger {
                        string timestamp,
                        EntryType type);
     double getAvgPrice(string product,
-                       string timestamp,
-                       int steps,
+                       string startTime,
+                       string endTime,
                        EntryType type);
     double predictPrice(string product,
                         string timestamp,
@@ -34,4 +36,7 @@ class Ledger {
 
    private:
     vector<Entry> entries;
+    vector<string> getProducts();
+    vector<string> getTimesteps();
+    void storeProdAndTimesteps();
 };
