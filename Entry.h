@@ -21,12 +21,19 @@ class Entry {
           bool _isUser);
     
     static EntryType stringToEntryType(string s);
+    static string entryTypeToString(EntryType e);
 
-    static bool sortByPriceAsc(Entry& e1, Entry& e2) {
-        return e1.price < e2.price;
+    // static bool sortByPriceAsc(Entry& e1, Entry& e2) {
+    //     return e1.price < e2.price;
+    // }
+    // static bool sortByPriceDesc(Entry& e1, Entry& e2) {
+    //     return e1.price > e2.price;
+    // }
+    static bool sortByPriceAsc(pair<Entry, int>& e1, pair<Entry, int>& e2) {
+        return e1.first.price < e2.first.price;
     }
-    static bool sortByPriceDesc(Entry& e1, Entry& e2) {
-        return e1.price > e2.price;
+    static bool sortByPriceDesc(pair<Entry, int>& e1, pair<Entry, int>& e2) {
+        return e1.first.price > e2.first.price;
     }
 
 

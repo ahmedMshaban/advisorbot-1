@@ -71,6 +71,18 @@ void AdvisorBot::processCommand(vector<string> command) {
             printAvg(command);
             break;
 
+        case commands::predict:
+            printPred(command);
+            break;
+
+        case commands::time:
+            printTime(command);
+            break;
+
+        case commands::step:
+            printStep(command);
+            break;
+
         case commands::exit:
             exit(command);
             break;
@@ -221,17 +233,23 @@ void AdvisorBot::printAvg(vector<string> command) {
         if (validProd(command[1]) && validType(type) && validInt(command[3])) {
             int steps = stoi(command[3]);
 
-
             if (steps > currentTimeIndex) {
-                advisorPrint({"Invalid number of time steps entered", "You may only obtain the average up to the beginning of the ledger"});
-            }
-            else {
+                advisorPrint({"Invalid number of time steps entered",
+                              "You may only obtain the average up to the "
+                              "beginning of the ledger"});
+            } else {
                 // Get timestamp string of the starting time
                 string startTime = ledger.timesteps[currentTimeIndex - steps];
                 // Get avg
-                avg = ledger.getAvgPrice(command[1], startTime, currentTime, type);
+                avg = ledger.getAvgPrice(command[1],
+                                         startTime,
+                                         currentTime,
+                                         type);
 
-                advisorPrint({"The average " + command[2] + " price of " + command[1] + " over the last " + to_string(steps) + " steps is: " + to_string(avg)});
+                advisorPrint({"The average " + command[2] + " price of " +
+                              command[1] + " over the last " +
+                              to_string(steps) +
+                              " steps is: " + to_string(avg)});
             }
         }
     }
@@ -240,6 +258,70 @@ void AdvisorBot::printAvg(vector<string> command) {
         advisorPrint({"Please enter a valid command",
                       "Use \"help avg\" to see valid uses"});
     }
+}
+
+void AdvisorBot::printPred(vector<string> command) {
+    if (command.size() == 4) {
+        EntryType type = Entry::stringToEntryType(command[3]);
+
+        if (validProd(command[2]) && validType(type)) {
+            if (command[1] == "min") {
+                double minPred =
+                    ledger.predictMin(command[2], currentTimeIndex, type);
+                advisorPrint({"The predicted minimum " + command[3] + " price of " + command[2] + " is " + to_string(minPred)});
+            } else if (command[1] == "max") {
+                double maxPred =
+                    ledger.predictMax(command[2], currentTimeIndex, type);
+                advisorPrint({"The predicted maximum " + command[3] + " price of " + command[2] + " is " + to_string(maxPred)});
+            } else {
+                advisorPrint({"Please enter a valid command",
+                              "Use \"help predict\" to see valid uses"});
+            }
+        }
+    }
+    // Command does not contain 4 keywords -> invalid input
+    else {
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help predict\" to see valid uses"});
+    }
+}
+
+void AdvisorBot::printTime(vector<string> command) {
+    if (command.size() == 1) {
+        advisorPrint({"The current time is: " + currentTime});
+    } else {
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help time\" to see valid uses"});
+    }
+}
+
+void AdvisorBot::printStep(vector<string> command) {
+    // Match entries
+    vector<Entry> sales = ledger.matchEntries(currentTime);
+
+    // Enter next timestep
+    if (currentTimeIndex <= ledger.timesteps.size() - 1) {
+        currentTimeIndex++;
+        currentTime = ledger.timesteps[currentTimeIndex];
+    } else {
+        advisorPrint({"Returning to first timestep"});
+        currentTimeIndex = 0;
+        currentTime = ledger.getEarliestTime();
+    }
+
+    vector<string> saleText;
+
+    // Print sales if any were made
+    if (sales.size() > 0) {
+        for (Entry const& entry : sales) {
+            saleText.push_back("Sold " + to_string(entry.amount) + " " +
+                            entry.product + " at the price of " +
+                            to_string(entry.price));
+        }
+    }
+
+    advisorPrint(saleText);
+    advisorPrint({"The current time is " + currentTime});
 }
 
 void AdvisorBot::exit(vector<string> command) {
@@ -260,7 +342,7 @@ bool AdvisorBot::validProd(string prod) {
 }
 
 bool AdvisorBot::validType(EntryType type) {
-    return  (type == EntryType::ask || type == EntryType::bid);
+    return (type == EntryType::ask || type == EntryType::bid);
 }
 
 bool AdvisorBot::validInt(string numString) {

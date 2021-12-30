@@ -12,7 +12,6 @@ class AdvisorBot {
    public:
     AdvisorBot();
     void init();
-    static void advisorPrint(vector<string> strings);
 
    private:
     // enum class for valid commands
@@ -43,9 +42,11 @@ class AdvisorBot {
 
     bool isRunning;
     Ledger ledger{"20200601.csv"};
+    // Ledger ledger{"test.csv"};
     string currentTime;
     int currentTimeIndex;
 
+    void advisorPrint(vector<string> strings);
     void printMenu();
     vector<string> getUserInput();
     void processCommand(vector<string> command);
@@ -54,6 +55,9 @@ class AdvisorBot {
     void printMin(vector<string> command);
     void printMax(vector<string> command);
     void printAvg(vector<string> command);
+    void printPred(vector<string> command);
+    void printTime(vector<string> command);
+    void printStep(vector<string> command);
     void exit(vector<string> command);
 
     bool validProd(string prod);

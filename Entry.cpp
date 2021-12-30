@@ -24,3 +24,15 @@ EntryType Entry::stringToEntryType(string s) {
         return EntryType::invalid;
     }
 }
+
+string Entry::entryTypeToString(EntryType e) {
+    if (e == EntryType::ask) {
+        return "ask";
+    }
+    if (e == EntryType::bid) {
+        return "bid";
+    }
+    else {
+        return "invalid";
+    }
+}
