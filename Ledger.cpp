@@ -23,16 +23,6 @@ vector<pair<Entry, int>> Ledger::getOrders(EntryType type,
                                            string timestamp) {
     vector<pair<Entry, int>> orders;
 
-    /*
-        for (Entry& e : entries) {
-            // Check that all params match
-            if (e.orderType == type && e.product == product &&
-                e.timestamp == timestamp) {
-                orders.push_back(e);
-            }
-        }
-    */
-
     for (int i = 0; i < entries.size(); i++) {
         // Check that all params match
         if (entries[i].orderType == type && entries[i].product == product &&
@@ -56,21 +46,6 @@ string Ledger::getNextTime(string timestamp) {
 
     // Loop back to start if on the last timestep
     return entries[0].timestamp;
-}
-
-void Ledger::inputEntry(Entry order) {
-    int pos;
-
-    // Search for the next timestamp
-    for (int i = 0; i < entries.size(); i++) {
-        if (entries[i].timestamp > order.timestamp) {
-            pos = i;
-            break;
-        }
-    }
-
-    // Insert order at the next timestamp
-    entries.insert(entries.begin() + pos, order);
 }
 
 vector<Entry> Ledger::matchEntries(string timestamp) {
@@ -263,42 +238,13 @@ double Ledger::getAvgPrice(string product,
     return avg;
 }
 
-double Ledger::predictPrice(string product,
-                            int timestampIndex,
-                            int steps,
-                            EntryType type) {
-    double avg;
-    int stepCounter = steps;
-    int currentTimeIndex = timestampIndex;
-
-    while (stepCounter > 0) {
-        double localAvg;
-        double localSum;
-        vector<pair<Entry, int>> localOrders =
-            getOrders(type, product, timesteps[currentTimeIndex]);
-
-        for (const pair<Entry, int>& e : localOrders) {
-            localSum += e.first.price;
-        }
-        localAvg = localSum / localOrders.size();
-
-        stepCounter--;
-        currentTimeIndex--;
-
-        avg += localAvg;
-    }
-
-    avg = avg / steps;
-}
-
-double Ledger::predictMin(string product,
-                          int timestampIndex,
-                          EntryType type) {
+double Ledger::predictMin(string product, int timestampIndex, EntryType type) {
     double minPred;
     int currentTimeIndex = timestampIndex;
 
     while (currentTimeIndex >= 0) {
-        vector<pair<Entry, int>> orders = getOrders(type, product, timesteps[currentTimeIndex]);
+        vector<pair<Entry, int>> orders =
+            getOrders(type, product, timesteps[currentTimeIndex]);
         double localMin = orders[0].first.price;
         for (const pair<Entry, int>& e : orders) {
             if (e.first.price < localMin) {
@@ -316,14 +262,13 @@ double Ledger::predictMin(string product,
     return minPred;
 }
 
-double Ledger::predictMax(string product,
-                          int timestampIndex,
-                          EntryType type) {
+double Ledger::predictMax(string product, int timestampIndex, EntryType type) {
     double maxPred;
     int currentTimeIndex = timestampIndex;
 
     while (currentTimeIndex >= 0) {
-        vector<pair<Entry, int>> orders = getOrders(type, product, timesteps[currentTimeIndex]);
+        vector<pair<Entry, int>> orders =
+            getOrders(type, product, timesteps[currentTimeIndex]);
         double localMax = orders[0].first.price;
         for (const pair<Entry, int>& e : orders) {
             if (e.first.price > localMax) {
@@ -339,6 +284,17 @@ double Ledger::predictMax(string product,
     maxPred /= timestampIndex + 1;
 
     return maxPred;
+}
+
+double Ledger::getChange(string product,
+                         int timestampIndex,
+                         int steps,
+                         EntryType type) {
+    double pChange;
+
+
+
+    return pChange;
 }
 
 /** Retrieves a vector of all existing products and timesteps */

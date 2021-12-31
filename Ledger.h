@@ -21,7 +21,6 @@ class Ledger {
     vector<int> getIndexes(EntryType type, string product, string timestamp);
     string getEarliestTime();
     string getNextTime(string timestamp);
-    void inputEntry(Entry order);
     vector<Entry> matchEntries(string timestamp);
     Entry transactionHandler(Entry bid, Entry ask);
     double getMaxPrice(string product, string timestamp, EntryType type);
@@ -30,16 +29,16 @@ class Ledger {
                        string startTime,
                        string endTime,
                        EntryType type);
-    double predictPrice(string product,
-                        int timestampIndex,
-                        int steps,
-                        EntryType type);
     double predictMin(string product,
                       int timestampIndex,
                       EntryType type);
     double predictMax(string product,
                       int timestampIndex,
                       EntryType type);
+    double getChange(string product,
+                     int timestampIndex,
+                     int steps,
+                     EntryType type);
 
    private:
     vector<Entry> entries;
