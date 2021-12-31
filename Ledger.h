@@ -13,11 +13,12 @@ class Ledger {
     /** Vector of available products */
     vector<string> products;
     vector<string> timesteps;
-    // vector<Entry> getOrders(EntryType type, string product, string
-    // timestamp);
-    vector<pair<Entry, int>> getOrders(EntryType type,
-                                       string product,
-                                       string timestamp);
+    vector<pair<Entry, int>> getCurrentEntries(EntryType type,
+                                               string product,
+                                               string timestamp);
+    vector<Entry> getAllEntries(EntryType type,
+                                string product,
+                                string timestamp);
     vector<int> getIndexes(EntryType type, string product, string timestamp);
     string getEarliestTime();
     string getNextTime(string timestamp);
@@ -29,16 +30,13 @@ class Ledger {
                        string startTime,
                        string endTime,
                        EntryType type);
-    double predictMin(string product,
-                      int timestampIndex,
-                      EntryType type);
-    double predictMax(string product,
-                      int timestampIndex,
-                      EntryType type);
+    double predictMin(string product, int timestampIndex, EntryType type);
+    double predictMax(string product, int timestampIndex, EntryType type);
     double getChange(string product,
                      int timestampIndex,
                      int steps,
-                     EntryType type);
+                     EntryType type,
+                     string valueType);
 
    private:
     vector<Entry> entries;

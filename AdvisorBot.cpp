@@ -38,8 +38,6 @@ void AdvisorBot::advisorPrint(vector<string> strings) {
     cout << endl;
 }
 
-void AdvisorBot::printMenu() {}
-
 vector<string> AdvisorBot::getUserInput() {
     string input;
     cout << "User: ";
@@ -83,6 +81,10 @@ void AdvisorBot::processCommand(vector<string> command) {
             printStep(command);
             break;
 
+        case commands::change:
+            printChange(command);
+            break;
+
         case commands::exit:
             exit(command);
             break;
@@ -97,7 +99,7 @@ void AdvisorBot::printHelp(vector<string> command) {
     if (command.size() == 1) {
         advisorPrint(
             {"The available commmands are help, help <cmd>, prod, min, max, "
-             "avg, predict, time, step, exit"});
+             "avg, predict, time, step, change, exit"});
     }
     // Input command was "help <cmd>"
     else if (command.size() == 2) {
@@ -106,41 +108,54 @@ void AdvisorBot::printHelp(vector<string> command) {
             case commands::help:
                 advisorPrint({"Displays available commands", "Usage: help"});
                 break;
+
             case commands::prod:
                 advisorPrint({"Lists all available products", "Usage: prod"});
                 break;
+
             case commands::min:
                 advisorPrint(
                     {"Lists current minimum bid/ask price of desired product",
                      "Usage: min <product> <bid/ask>"});
                 break;
+
             case commands::max:
                 advisorPrint(
                     {"Lists current maximum bid/ask price of desired product",
                      "Usage: max <product> <bid/ask>"});
                 break;
+
             case commands::avg:
                 advisorPrint(
                     {"Lists average bid/ask price of desired product over the "
                      "desired number of timesteps",
                      "Usage: avg <product> <ask/bid> <timesteps>"});
                 break;
+
             case commands::predict:
                 advisorPrint(
                     {"Predicts the maximum/minimum bid/ask of desired product",
                      "Usage: predict <max/min> <product> <ask/bid>"});
                 break;
+
             case commands::time:
                 advisorPrint(
                     {"Tells you the current timeframe the program is in",
                      "Usage: time"});
                 break;
+
             case commands::step:
                 advisorPrint({"Moves to the next timestep", "Usage: step"});
                 break;
+
+            case commands::change:
+                advisorPrint({"Shows the percentage change in the price of a particular product over the desired number of timesteps", "Usage: change <min/max> <product> <type> <timesteps>"});
+                break;
+                
             case commands::exit:
                 advisorPrint({"Exits program", "Usage: exit"});
                 break;
+
             // Invalid commands will default to commands::invalid
             default:
                 advisorPrint({"Please enter a valid command",
@@ -233,6 +248,7 @@ void AdvisorBot::printAvg(vector<string> command) {
         if (validProd(command[1]) && validType(type) && validInt(command[3])) {
             int steps = stoi(command[3]);
 
+            // Check for valid time steps
             if (steps > currentTimeIndex) {
                 advisorPrint({"Invalid number of time steps entered",
                               "You may only obtain the average up to the "
@@ -251,6 +267,11 @@ void AdvisorBot::printAvg(vector<string> command) {
                               to_string(steps) +
                               " steps is: " + to_string(avg)});
             }
+        }
+        // Invalid args
+        else {
+            advisorPrint({"Please enter a valid command",
+                        "Use \"help avg\" to see valid uses"});
         }
     }
     // Command does not contain 4 keywords -> invalid input
@@ -296,32 +317,63 @@ void AdvisorBot::printTime(vector<string> command) {
 }
 
 void AdvisorBot::printStep(vector<string> command) {
-    // Match entries
-    vector<Entry> sales = ledger.matchEntries(currentTime);
+    if (command.size() == 1) {
+        // Match entries
+        vector<Entry> sales = ledger.matchEntries(currentTime);
 
-    // Enter next timestep
-    if (currentTimeIndex <= ledger.timesteps.size() - 1) {
-        currentTimeIndex++;
-        currentTime = ledger.timesteps[currentTimeIndex];
-    } else {
-        advisorPrint({"Returning to first timestep"});
-        currentTimeIndex = 0;
-        currentTime = ledger.getEarliestTime();
+        // Enter next timestep
+        if (currentTimeIndex <= ledger.timesteps.size() - 1) {
+            currentTimeIndex++;
+            currentTime = ledger.timesteps[currentTimeIndex];
+        } else {
+            advisorPrint({"Returning to first timestep"});
+            currentTimeIndex = 0;
+            currentTime = ledger.getEarliestTime();
+        }
+
+        vector<string> saleText;
+
+        // Print sales if any were made
+        if (sales.size() > 0) {
+            for (Entry const& entry : sales) {
+                saleText.push_back("Sold " + to_string(entry.amount) + " " +
+                                entry.product + " at the price of " +
+                                to_string(entry.price));
+            }
+        }
+
+        advisorPrint(saleText);
+        advisorPrint({"The current time is " + currentTime});
     }
+    else {
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help step\" to see valid uses"});
+    }
+}
 
-    vector<string> saleText;
+/** change <min/max> <product> <type> <timesteps> */
+void AdvisorBot::printChange(vector<string> command) {
+    if (command.size() == 5) {
+        EntryType type = Entry::stringToEntryType(command[3]);
+        // Validate args
+        if (validProd(command[2]) && validType(type) && validInt(command[4]) && command[1] == "min" || command[1] == "max" || command[1] == "avg") {
+            int steps = stoi(command[4]);
 
-    // Print sales if any were made
-    if (sales.size() > 0) {
-        for (Entry const& entry : sales) {
-            saleText.push_back("Sold " + to_string(entry.amount) + " " +
-                            entry.product + " at the price of " +
-                            to_string(entry.price));
+            // Check for valid time steps
+            if (steps > currentTimeIndex) {
+                advisorPrint({"Invalid number of time steps entered",
+                              "You may only calculate up to the "
+                              "beginning of the ledger"});
+            } else {              
+                double change = ledger.getChange(command[2], currentTimeIndex, steps, type, command[1]);
+                advisorPrint({"The price of " + command[2] + " has changed by " + to_string(change) + "% over the last " + command[4] + " timesteps"});
+            }
         }
     }
-
-    advisorPrint(saleText);
-    advisorPrint({"The current time is " + currentTime});
+    else {
+        advisorPrint({"Please enter a valid command",
+                      "Use \"help change\" to see valid uses"});
+    }
 }
 
 void AdvisorBot::exit(vector<string> command) {

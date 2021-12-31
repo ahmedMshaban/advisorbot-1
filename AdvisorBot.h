@@ -25,6 +25,7 @@ class AdvisorBot {
         predict,
         time,
         step,
+        change,
         exit
     };
 
@@ -38,7 +39,8 @@ class AdvisorBot {
                                  {"predict", commands::predict},
                                  {"time", commands::time},
                                  {"step", commands::step},
-                                 {"exit", commands::exit}};
+                                 {"exit", commands::exit},
+                                 {"change", commands::change}};
 
     bool isRunning;
     Ledger ledger{"20200601.csv"};
@@ -58,6 +60,7 @@ class AdvisorBot {
     void printPred(vector<string> command);
     void printTime(vector<string> command);
     void printStep(vector<string> command);
+    void printChange(vector<string> command);
     void exit(vector<string> command);
 
     bool validProd(string prod);
