@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "Entry.h"
 
@@ -11,8 +12,11 @@ using namespace std;
 
 CSVReader::CSVReader() {}
 
-vector<Entry> CSVReader::readCSV(string fileName) {
+vector<Entry> CSVReader::readCSV(string fileName, vector<string>& products, vector<string>& timesteps) {
     vector<Entry> entries;
+    // Map for timesteps and products
+    map<string, bool> timeMap;
+    map<string, bool> prodMap;
 
     ifstream csvFile{fileName};
     string line;
@@ -21,9 +25,20 @@ vector<Entry> CSVReader::readCSV(string fileName) {
             try {
                 Entry entry = stringsToOBE(tokenise(line, ','));
                 entries.push_back(entry);
+                // Store timesteps and products into map
+                timeMap[entry.timestamp] = true;
+                prodMap[entry.product] = true;
             } catch (const exception& e) {
                 cout << "CSVReader::readCSV bad data" << endl;
             }
+        }
+        // Push timesteps
+        for (const auto& s : timeMap) {
+            timesteps.push_back(s.first);
+        }
+        // Push products
+        for (const auto& s : prodMap) {
+            products.push_back(s.first);
         }
     }
 

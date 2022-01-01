@@ -12,9 +12,8 @@ using namespace std;
 
 /** Generate ledger from csv file */
 Ledger::Ledger(string filename) {
-    entries = CSVReader::readCSV(filename);
+    entries = CSVReader::readCSV(filename, products, timesteps);
     original = entries;
-    storeProdAndTimesteps();
 }
 
 /** Retrieve current entries according to parameters set */
@@ -329,26 +328,4 @@ double Ledger::getChange(string product,
     pChange = (currPrice - startPrice/startPrice)*100;
 
     return pChange;
-}
-
-/** Retrieves a vector of all existing products and timesteps */
-void Ledger::storeProdAndTimesteps() {
-    map<string, bool> timeMap;
-    map<string, bool> prodMap;
-
-    // Generate map for both
-    for (Entry& e : entries) {
-        timeMap[e.timestamp] = true;
-        prodMap[e.product] = true;
-    }
-
-    // Push timesteps
-    for (auto const& e : timeMap) {
-        timesteps.push_back(e.first);
-    }
-
-    // Push products
-    for (auto const& e : prodMap) {
-        products.push_back(e.first);
-    }
 }
