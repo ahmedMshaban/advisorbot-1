@@ -10,7 +10,6 @@ using namespace std;
 class Ledger {
    public:
     Ledger(string filename);
-    /** Vector of available products */
     vector<string> products;
     vector<string> timesteps;
     vector<pair<Entry, int>> getCurrentEntries(EntryType type,
@@ -39,7 +38,7 @@ class Ledger {
                      string valueType);
 
    private:
-    vector<Entry> entries;
+    vector<Entry> currentLedger;
     vector<Entry> original;
     vector<string> getProducts();
     vector<string> getTimesteps();

@@ -28,6 +28,7 @@ void AdvisorBot::init() {
     }
 }
 
+/** Format output text for advisorbot output */
 void AdvisorBot::advisorPrint(vector<string> strings) {
     cout << endl;
 
@@ -38,6 +39,7 @@ void AdvisorBot::advisorPrint(vector<string> strings) {
     cout << endl;
 }
 
+/** Collect and return user input */
 vector<string> AdvisorBot::getUserInput() {
     string input;
     cout << "User: ";
@@ -47,7 +49,9 @@ vector<string> AdvisorBot::getUserInput() {
     return command;
 }
 
+/** User command parsing */
 void AdvisorBot::processCommand(vector<string> command) {
+    // Maps string to command enum class to enable the use of switch statement
     switch (cmdMap[command[0]]) {
         case commands::help:
             printHelp(command);
@@ -89,11 +93,13 @@ void AdvisorBot::processCommand(vector<string> command) {
             exit(command);
             break;
 
+        // If none match -> invalid command
         default:
-            advisorPrint({"Please enter a valid command (case sensitive)"});
+            advisorPrint({"Please enter a valid command (case sensitive)", "Enter \"help\" to see a list of available commands"});
     }
 }
 
+/** Print help menu */
 void AdvisorBot::printHelp(vector<string> command) {
     // Input command was "help"
     if (command.size() == 1) {
@@ -165,6 +171,7 @@ void AdvisorBot::printHelp(vector<string> command) {
     }
 }
 
+/** Print list of products */
 void AdvisorBot::printProd(vector<string> command) {
     // Input command was "prod"
     if (command.size() == 1) {
@@ -177,13 +184,14 @@ void AdvisorBot::printProd(vector<string> command) {
         // Remove the last seperator at the end of the string
         s.erase(s.end() - 2, s.end());
 
-        advisorPrint({s});
+        advisorPrint({"The available products are " + s});
     } else {
         advisorPrint({"Please enter a valid command",
                       "Use \"help prod\" to see valid uses"});
     }
 }
 
+/** Prints current minimum price of a particular product */
 void AdvisorBot::printMin(vector<string> command) {
     double price;
 
@@ -195,7 +203,7 @@ void AdvisorBot::printMin(vector<string> command) {
         if (validProd(command[1]) && validType(type)) {
             price = ledger.getMinPrice(command[1], currentTime, type);
 
-            advisorPrint({"The minimum price of " + command[1] + " is " +
+            advisorPrint({"The minimum " + command[2] + " price of " + command[1] + " is " +
                           to_string(price)});
         }
         // If invalid product or entry type
@@ -211,6 +219,7 @@ void AdvisorBot::printMin(vector<string> command) {
     }
 }
 
+/** Prints current maximum price of a particular product */
 void AdvisorBot::printMax(vector<string> command) {
     double price;
 
@@ -222,7 +231,7 @@ void AdvisorBot::printMax(vector<string> command) {
         if (validProd(command[1]) && validType(type)) {
             price = ledger.getMaxPrice(command[1], currentTime, type);
 
-            advisorPrint({"The maximum price of " + command[1] + " is " +
+            advisorPrint({"The maximum " + command[2] + " price of " + command[1] + " is " +
                           to_string(price)});
         }
         // If invalid product or entry type
@@ -238,6 +247,7 @@ void AdvisorBot::printMax(vector<string> command) {
     }
 }
 
+/** Prints average price of a particular product over a certain number of timesteps */
 void AdvisorBot::printAvg(vector<string> command) {
     // Check that command contains 4 keywords
     if (command.size() == 4) {
@@ -281,6 +291,7 @@ void AdvisorBot::printAvg(vector<string> command) {
     }
 }
 
+/** Prints the predicted max/min price of a particular product in the next timestep */
 void AdvisorBot::printPred(vector<string> command) {
     if (command.size() == 4) {
         EntryType type = Entry::stringToEntryType(command[3]);
@@ -307,6 +318,7 @@ void AdvisorBot::printPred(vector<string> command) {
     }
 }
 
+/** Prints current time */
 void AdvisorBot::printTime(vector<string> command) {
     if (command.size() == 1) {
         advisorPrint({"The current time is: " + currentTime});
@@ -316,6 +328,7 @@ void AdvisorBot::printTime(vector<string> command) {
     }
 }
 
+/** Steps into the next timestep and prints sales (if any) */
 void AdvisorBot::printStep(vector<string> command) {
     if (command.size() == 1) {
         // Match entries
@@ -340,9 +353,9 @@ void AdvisorBot::printStep(vector<string> command) {
                                 entry.product + " at the price of " +
                                 to_string(entry.price));
             }
+            advisorPrint(saleText);
         }
 
-        advisorPrint(saleText);
         advisorPrint({"The current time is " + currentTime});
     }
     else {
@@ -351,7 +364,7 @@ void AdvisorBot::printStep(vector<string> command) {
     }
 }
 
-/** change <min/max> <product> <type> <timesteps> */
+/** Prints the percentage change in the price of a particular product over a certain number of timesteps */
 void AdvisorBot::printChange(vector<string> command) {
     if (command.size() == 5) {
         EntryType type = Entry::stringToEntryType(command[3]);
@@ -376,6 +389,7 @@ void AdvisorBot::printChange(vector<string> command) {
     }
 }
 
+/** Exits program */
 void AdvisorBot::exit(vector<string> command) {
     if (command.size() == 1) {
         advisorPrint({"Thank you for using AdvisorBot!"});
@@ -386,6 +400,7 @@ void AdvisorBot::exit(vector<string> command) {
     }
 }
 
+/** Validate if input string is a valid product */
 bool AdvisorBot::validProd(string prod) {
     // https://www.delftstack.com/howto/cpp/cpp-find-element-in-vector/
     return any_of(ledger.products.begin(),
@@ -393,10 +408,12 @@ bool AdvisorBot::validProd(string prod) {
                   [&](const string& s) { return s == prod; });
 }
 
+/** Validate if input type is a valid type */
 bool AdvisorBot::validType(EntryType type) {
     return (type == EntryType::ask || type == EntryType::bid);
 }
 
+/** Validate if input string is an integer */
 bool AdvisorBot::validInt(string numString) {
     // Loop over each char in numString
     for (char const& c : numString) {

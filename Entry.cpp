@@ -4,14 +4,12 @@ Entry::Entry(double _price,
              double _amount,
              string _timestamp,
              string _product,
-             EntryType _orderType,
-             bool _isUser)
+             EntryType _orderType)
     : price(_price),
       amount(_amount),
       timestamp(_timestamp),
       product(_product),
-      orderType(_orderType),
-      isUser(_isUser) {}
+      orderType(_orderType) {}
 
 EntryType Entry::stringToEntryType(string s) {
     if (s == "ask") {
@@ -22,17 +20,5 @@ EntryType Entry::stringToEntryType(string s) {
     }
     else {
         return EntryType::invalid;
-    }
-}
-
-string Entry::entryTypeToString(EntryType e) {
-    if (e == EntryType::ask) {
-        return "ask";
-    }
-    if (e == EntryType::bid) {
-        return "bid";
-    }
-    else {
-        return "invalid";
     }
 }

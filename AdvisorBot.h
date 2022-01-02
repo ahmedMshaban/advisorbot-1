@@ -49,7 +49,6 @@ class AdvisorBot {
     int currentTimeIndex;
 
     void advisorPrint(vector<string> strings);
-    void printMenu();
     vector<string> getUserInput();
     void processCommand(vector<string> command);
     void printHelp(vector<string> command);

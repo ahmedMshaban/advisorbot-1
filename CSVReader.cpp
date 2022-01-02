@@ -2,9 +2,9 @@
 
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "Entry.h"
 
@@ -12,7 +12,10 @@ using namespace std;
 
 CSVReader::CSVReader() {}
 
-vector<Entry> CSVReader::readCSV(string fileName, vector<string>& products, vector<string>& timesteps) {
+/** Returns vector of entries and stores products and timesteps via reference */
+vector<Entry> CSVReader::readCSV(string fileName,
+                                 vector<string>& products,
+                                 vector<string>& timesteps) {
     vector<Entry> entries;
     // Map for timesteps and products
     map<string, bool> timeMap;
@@ -23,7 +26,7 @@ vector<Entry> CSVReader::readCSV(string fileName, vector<string>& products, vect
     if (csvFile.is_open()) {
         while (getline(csvFile, line)) {
             try {
-                Entry entry = stringsToOBE(tokenise(line, ','));
+                Entry entry = stringsToEntry(tokenise(line, ','));
                 entries.push_back(entry);
                 // Store timesteps and products into map
                 timeMap[entry.timestamp] = true;
@@ -42,11 +45,11 @@ vector<Entry> CSVReader::readCSV(string fileName, vector<string>& products, vect
         }
     }
 
-    cout << "CSVReader::readCSV read " << entries.size() << " entries"
-            << endl;
+    cout << "CSVReader::readCSV read " << entries.size() << " entries" << endl;
     return entries;
 }
 
+/** Returns a vector of tokens of a string */
 vector<string> CSVReader::tokenise(string s, char separator) {
     vector<string> tokens;
     signed int start, end;
@@ -69,26 +72,8 @@ vector<string> CSVReader::tokenise(string s, char separator) {
     return tokens;
 }
 
-Entry CSVReader::stringsToOBE(string priceString,
-                              string amountString,
-                              string timestamp,
-                              string product,
-                              EntryType orderType) {
-    double price, amount;
-    try {
-        price = stod(priceString);
-        amount = stod(amountString);
-    } catch (const exception& e) {
-        cout << "CSVReader::stringsToOBE Bad float! " << priceString << endl;
-        cout << "CSVReader::stringsToOBE Bad float! " << amountString << endl;
-        throw;
-    }
-    Entry obe{price, amount, timestamp, product, orderType, true};
-
-    return obe;
-}
-
-Entry CSVReader::stringsToOBE(vector<string> tokens) {
+/** Returns an entry object with the tokens passed in */
+Entry CSVReader::stringsToEntry(vector<string> tokens) {
     double price, amount;
 
     // Invalid token input
@@ -100,17 +85,16 @@ Entry CSVReader::stringsToOBE(vector<string> tokens) {
         price = stod(tokens[3]);
         amount = stod(tokens[4]);
     } catch (const exception& e) {
-        cout << "CSVReader::stringsToOBE Bad float! " << tokens[3] << endl;
-        cout << "CSVReader::stringsToOBE Bad float! " << tokens[4] << endl;
+        cout << "CSVReader::stringsToEntry Bad float! " << tokens[3] << endl;
+        cout << "CSVReader::stringsToEntry Bad float! " << tokens[4] << endl;
         throw;
     }
 
-    Entry obe{price,
-              amount,
-              tokens[0],
-              tokens[1],
-              Entry::stringToEntryType(tokens[2]),
-              false};
+    Entry entry{price,
+                amount,
+                tokens[0],
+                tokens[1],
+                Entry::stringToEntryType(tokens[2])};
 
-    return obe;
+    return entry;
 }
