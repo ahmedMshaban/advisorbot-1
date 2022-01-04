@@ -1,5 +1,10 @@
 #include "Entry.h"
 
+
+map<string, EntryType> typeMap{{" ", EntryType::invalid},
+                                {"ask", EntryType::ask},
+                                {"bid", EntryType::bid}};
+
 Entry::Entry(double _price,
              double _amount,
              string _timestamp,
@@ -15,10 +20,12 @@ EntryType Entry::stringToEntryType(string s) {
     if (s == "ask") {
         return EntryType::ask;
     }
-    if (s == "bid") {
+    else if (s == "bid") {
         return EntryType::bid;
     }
     else {
         return EntryType::invalid;
     }
+
+    // return typeMap[s];
 }

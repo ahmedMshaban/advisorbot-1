@@ -30,7 +30,7 @@ class AdvisorBot {
     };
 
     // Map inputs to commands enum
-    map<string, commands> cmdMap{{" ", commands::invalid},
+    map<string, commands> cmdMap{{"", commands::invalid},
                                  {"help", commands::help},
                                  {"prod", commands::prod},
                                  {"min", commands::min},

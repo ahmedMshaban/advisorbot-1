@@ -1,15 +1,16 @@
 #include "AdvisorBot.h"
+#include "CSVReader.h"
+#include "Entry.h"
 
 #include <algorithm>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-
-#include "CSVReader.h"
-#include "Entry.h"
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 AdvisorBot::AdvisorBot() {}
 
@@ -51,50 +52,55 @@ vector<string> AdvisorBot::getUserInput() {
 
 /** User command parsing */
 void AdvisorBot::processCommand(vector<string> command) {
-    // Maps string to command enum class to enable the use of switch statement
-    switch (cmdMap[command[0]]) {
-        case commands::help:
-            printHelp(command);
-            break;
+    // Check that there are commands
+    if (command.size() > 0) {
+        // Maps string to command enum class to enable the use of switch statement
+        switch (cmdMap[command[0]]) {
+            case commands::help:
+                printHelp(command);
+                break;
 
-        case commands::prod:
-            printProd(command);
-            break;
+            case commands::prod:
+                printProd(command);
+                break;
 
-        case commands::min:
-            printMin(command);
-            break;
+            case commands::min:
+                printMin(command);
+                break;
 
-        case commands::max:
-            printMax(command);
-            break;
+            case commands::max:
+                printMax(command);
+                break;
 
-        case commands::avg:
-            printAvg(command);
-            break;
+            case commands::avg:
+                printAvg(command);
+                break;
 
-        case commands::predict:
-            printPred(command);
-            break;
+            case commands::predict:
+                printPred(command);
+                break;
 
-        case commands::time:
-            printTime(command);
-            break;
+            case commands::time:
+                printTime(command);
+                break;
 
-        case commands::step:
-            printStep(command);
-            break;
+            case commands::step:
+                printStep(command);
+                break;
 
-        case commands::change:
-            printChange(command);
-            break;
+            case commands::change:
+                printChange(command);
+                break;
 
-        case commands::exit:
-            exit(command);
-            break;
+            case commands::exit:
+                exit(command);
+                break;
 
-        // If none match -> invalid command
-        default:
+            // If none match -> invalid command
+            default:
+                advisorPrint({"Please enter a valid command (case sensitive)", "Enter \"help\" to see a list of available commands"});
+        }
+    } else {
             advisorPrint({"Please enter a valid command (case sensitive)", "Enter \"help\" to see a list of available commands"});
     }
 }
@@ -332,7 +338,16 @@ void AdvisorBot::printTime(vector<string> command) {
 void AdvisorBot::printStep(vector<string> command) {
     if (command.size() == 1) {
         // Match entries
+
+        // Benchmarking
+        auto start = high_resolution_clock::now();
+
         vector<Entry> sales = ledger.matchEntries(currentTime);
+
+        // Benchmarking
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start);
+        cout << "Execution time: " << duration.count() << endl;
 
         // Enter next timestep
         if (currentTimeIndex <= ledger.timesteps.size() - 1) {
@@ -402,7 +417,6 @@ void AdvisorBot::exit(vector<string> command) {
 
 /** Validate if input string is a valid product */
 bool AdvisorBot::validProd(string prod) {
-    // https://www.delftstack.com/howto/cpp/cpp-find-element-in-vector/
     return any_of(ledger.products.begin(),
                   ledger.products.end(),
                   [&](const string& s) { return s == prod; });

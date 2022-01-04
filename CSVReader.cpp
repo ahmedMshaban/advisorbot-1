@@ -5,17 +5,24 @@
 #include <map>
 #include <string>
 #include <vector>
+// Benchmarking
+#include <chrono>
 
 #include "Entry.h"
 
 using namespace std;
+using namespace std::chrono;
 
 CSVReader::CSVReader() {}
 
 /** Returns vector of entries and stores products and timesteps via reference */
 vector<Entry> CSVReader::readCSV(string fileName,
+                                 // Reference for products and timesteps vector so I can modify these directly
                                  vector<string>& products,
                                  vector<string>& timesteps) {
+    // Benchmarking
+    auto start = high_resolution_clock::now();
+    
     vector<Entry> entries;
     // Map for timesteps and products
     map<string, bool> timeMap;
@@ -45,6 +52,11 @@ vector<Entry> CSVReader::readCSV(string fileName,
         }
     }
 
+    // Benchmarking
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(stop - start);
+    cout << "Execution time: " << duration.count() << endl;
+
     cout << "CSVReader::readCSV read " << entries.size() << " entries" << endl;
     return entries;
 }
@@ -52,22 +64,23 @@ vector<Entry> CSVReader::readCSV(string fileName,
 /** Returns a vector of tokens of a string */
 vector<string> CSVReader::tokenise(string s, char separator) {
     vector<string> tokens;
-    signed int start, end;
+    int start, end;
     string token;
+
+    // Runtime: 4285ms
+
     start = s.find_first_not_of(separator, 0);
-    while (end > 0) {
+    end = 1;
+    do {
         end = s.find_first_of(separator, start);
-        if (start == s.length() || start == end) {
-            break;
-        }
-        if (end >= 0) {
+        if (start == s.length() || start == end) break;
+        if (end >= 0)
             token = s.substr(start, end - start);
-        } else {
+        else
             token = s.substr(start, s.length() - start);
-        }
         tokens.push_back(token);
         start = end + 1;
-    }
+    } while (end > 0);
 
     return tokens;
 }
@@ -82,6 +95,8 @@ Entry CSVReader::stringsToEntry(vector<string> tokens) {
         throw exception{};
     }
     try {
+        // price = strtod(tokens[3].c_str(), NULL);
+        // amount = strtod(tokens[4].c_str(), NULL);
         price = stod(tokens[3]);
         amount = stod(tokens[4]);
     } catch (const exception& e) {

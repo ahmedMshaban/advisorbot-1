@@ -117,13 +117,11 @@ vector<Entry> Ledger::matchEntries(string timestamp) {
                     sales.push_back(sale);
 
                     // Calculate remaining bid and ask amount left
-                    bids[j].first.amount -= sale.amount;
-                    asks[i].first.amount -= sale.amount;
                     currentLedger[bids[j].second].amount -= sale.amount;
                     currentLedger[asks[i].second].amount -= sale.amount;
 
                     // If bid amount was exhausted
-                    if (bids[j].first.amount == 0) {
+                    if (currentLedger[bids[j].second].amount == 0) {
                         // Remove bid entry from bids vector and mark it for
                         // deletion
                         markedForDeletion.push_back(bids[j].second);
@@ -133,7 +131,7 @@ vector<Entry> Ledger::matchEntries(string timestamp) {
                     }
 
                     // If ask amount was exhausted
-                    if (asks[i].first.amount == 0) {
+                    if (currentLedger[asks[i].second].amount == 0) {
                         // Remove ask entry from asks vector and mark it for
                         // deletion
                         markedForDeletion.push_back(asks[i].second);
