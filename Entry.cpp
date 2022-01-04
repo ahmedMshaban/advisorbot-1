@@ -1,10 +1,5 @@
 #include "Entry.h"
 
-
-map<string, EntryType> typeMap{{" ", EntryType::invalid},
-                                {"ask", EntryType::ask},
-                                {"bid", EntryType::bid}};
-
 Entry::Entry(double _price,
              double _amount,
              string _timestamp,
@@ -16,6 +11,7 @@ Entry::Entry(double _price,
       product(_product),
       orderType(_orderType) {}
 
+// Copied from Merklerex
 EntryType Entry::stringToEntryType(string s) {
     if (s == "ask") {
         return EntryType::ask;
@@ -23,9 +19,6 @@ EntryType Entry::stringToEntryType(string s) {
     else if (s == "bid") {
         return EntryType::bid;
     }
-    else {
-        return EntryType::invalid;
-    }
 
-    // return typeMap[s];
+    return EntryType::invalid;
 }

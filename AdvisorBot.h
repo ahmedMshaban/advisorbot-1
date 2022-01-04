@@ -44,7 +44,6 @@ class AdvisorBot {
 
     bool isRunning;
     Ledger ledger{"20200601.csv"};
-    // Ledger ledger{"test.csv"};
     string currentTime;
     int currentTimeIndex;
 

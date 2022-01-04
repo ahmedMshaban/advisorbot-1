@@ -15,13 +15,14 @@ using namespace std::chrono;
 
 CSVReader::CSVReader() {}
 
+// Modified from Merklerex
 /** Returns vector of entries and stores products and timesteps via reference */
 vector<Entry> CSVReader::readCSV(string fileName,
                                  // Reference for products and timesteps vector so I can modify these directly
                                  vector<string>& products,
                                  vector<string>& timesteps) {
-    // Benchmarking
-    auto start = high_resolution_clock::now();
+    // // Benchmarking
+    // auto start = high_resolution_clock::now();
     
     vector<Entry> entries;
     // Map for timesteps and products
@@ -52,22 +53,21 @@ vector<Entry> CSVReader::readCSV(string fileName,
         }
     }
 
-    // Benchmarking
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<milliseconds>(stop - start);
-    cout << "Execution time: " << duration.count() << endl;
+    // // Benchmarking
+    // auto stop = high_resolution_clock::now();
+    // auto duration = duration_cast<milliseconds>(stop - start);
+    // cout << "Execution time: " << duration.count() << endl;
 
-    cout << "CSVReader::readCSV read " << entries.size() << " entries" << endl;
+    cout << entries.size() << " entries read" << endl;
     return entries;
 }
 
+// Copied from Merklerex
 /** Returns a vector of tokens of a string */
 vector<string> CSVReader::tokenise(string s, char separator) {
     vector<string> tokens;
     int start, end;
     string token;
-
-    // Runtime: 4285ms
 
     start = s.find_first_not_of(separator, 0);
     end = 1;
@@ -85,6 +85,7 @@ vector<string> CSVReader::tokenise(string s, char separator) {
     return tokens;
 }
 
+// Modified from Merklerex
 /** Returns an entry object with the tokens passed in */
 Entry CSVReader::stringsToEntry(vector<string> tokens) {
     double price, amount;
@@ -95,10 +96,8 @@ Entry CSVReader::stringsToEntry(vector<string> tokens) {
         throw exception{};
     }
     try {
-        // price = strtod(tokens[3].c_str(), NULL);
-        // amount = strtod(tokens[4].c_str(), NULL);
-        price = stod(tokens[3]);
-        amount = stod(tokens[4]);
+        price = strtod(tokens[3].c_str(), NULL);
+        amount = strtod(tokens[4].c_str(), NULL);
     } catch (const exception& e) {
         cout << "CSVReader::stringsToEntry Bad float! " << tokens[3] << endl;
         cout << "CSVReader::stringsToEntry Bad float! " << tokens[4] << endl;

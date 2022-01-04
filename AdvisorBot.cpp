@@ -14,6 +14,7 @@ using namespace std::chrono;
 
 AdvisorBot::AdvisorBot() {}
 
+// Largely taken from Merklerex
 void AdvisorBot::init() {
     isRunning = true;
     vector<string> command;
@@ -40,6 +41,7 @@ void AdvisorBot::advisorPrint(vector<string> strings) {
     cout << endl;
 }
 
+// Modified from Merklerex
 /** Collect and return user input */
 vector<string> AdvisorBot::getUserInput() {
     string input;
@@ -388,13 +390,13 @@ void AdvisorBot::printChange(vector<string> command) {
             int steps = stoi(command[4]);
 
             // Check for valid time steps
-            if (steps > currentTimeIndex) {
+            if (steps <= currentTimeIndex && steps > 0) {
+                double change = ledger.getChange(command[2], currentTimeIndex, steps, type, command[1]);
+                advisorPrint({"The price of " + command[2] + " has changed by " + to_string(change) + "% over the last " + command[4] + " timesteps"});
+            } else {              
                 advisorPrint({"Invalid number of time steps entered",
                               "You may only calculate up to the "
                               "beginning of the ledger"});
-            } else {              
-                double change = ledger.getChange(command[2], currentTimeIndex, steps, type, command[1]);
-                advisorPrint({"The price of " + command[2] + " has changed by " + to_string(change) + "% over the last " + command[4] + " timesteps"});
             }
         }
     }
@@ -419,7 +421,7 @@ void AdvisorBot::exit(vector<string> command) {
 bool AdvisorBot::validProd(string prod) {
     return any_of(ledger.products.begin(),
                   ledger.products.end(),
-                  [&](const string& s) { return s == prod; });
+                  [prod](const string& s) { return s == prod; });
 }
 
 /** Validate if input type is a valid type */

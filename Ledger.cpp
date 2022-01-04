@@ -10,21 +10,26 @@
 
 using namespace std;
 
+// Largely taken from Merklerex
 /** Generate ledger from csv file */
 Ledger::Ledger(string filename) {
     currentLedger = CSVReader::readCSV(filename, products, timesteps);
     original = currentLedger;
 }
 
+// Modified from Merklerex
 /** Retrieve current entries according to parameters set */
 vector<pair<Entry, int>> Ledger::getCurrentEntries(EntryType type,
-                                           string product,
-                                           string timestamp) {
+                                                   string product,
+                                                   string timestamp) {
+    // Vector of pairs used here since matchEntries needs the index of each
+    // entry as well
     vector<pair<Entry, int>> orders;
 
     for (int i = 0; i < currentLedger.size(); i++) {
         // Check that all params match
-        if (currentLedger[i].orderType == type && currentLedger[i].product == product &&
+        if (currentLedger[i].orderType == type &&
+            currentLedger[i].product == product &&
             currentLedger[i].timestamp == timestamp) {
             orders.push_back({currentLedger[i], i});
         }
@@ -33,23 +38,26 @@ vector<pair<Entry, int>> Ledger::getCurrentEntries(EntryType type,
     return orders;
 }
 
+// Copied from Merklerex
 /** Retrieve all entries according to parameters set */
 vector<Entry> Ledger::getAllEntries(EntryType type,
                                     string product,
                                     string timestamp) {
     vector<Entry> orders;
 
-    for (int i = 0; i < currentLedger.size(); i++) {
+    // for (int i = 0; i < currentLedger.size(); i++) {
+    for (const Entry& e : original) {
         // Check that all params match
-        if (currentLedger[i].orderType == type && currentLedger[i].product == product &&
-            currentLedger[i].timestamp == timestamp) {
-            orders.push_back(currentLedger[i]);
+        if (e.orderType == type && e.product == product &&
+            e.timestamp == timestamp) {
+            orders.push_back(e);
         }
     }
 
     return orders;
 }
 
+// Copied from Merklerex
 /** Returns the earliest timestamp of the ledger */
 string Ledger::getEarliestTime() { return currentLedger[0].timestamp; }
 
@@ -57,9 +65,7 @@ string Ledger::getEarliestTime() { return currentLedger[0].timestamp; }
 string Ledger::getNextTime(string timestamp) {
     // Search for next timestamp
     for (Entry& e : currentLedger) {
-        if (e.timestamp > timestamp) {
-            return e.timestamp;
-        }
+        if (e.timestamp > timestamp) return e.timestamp;
     }
 
     // Loop back to start if on the last timestep
@@ -80,13 +86,12 @@ vector<Entry> Ledger::matchEntries(string timestamp) {
         // Vector to store indexes of entries to delete
         vector<int> markedForDeletion;
 
-        // Loop through all timesteps
+        // Loop through all timesteps up to the current time
         for (int i = 0; i < timesteps.size(); i++) {
             // If we went past the current time, break the loop
-            if (timesteps[i] > timestamp) {
-                break;
-            }
-            // Retrieve all bids and asks at each timestep
+            if (timesteps[i] > timestamp) break;
+
+            // Retrieve bids and asks at each timestep
             vector<pair<Entry, int>> currentBids =
                 getCurrentEntries(EntryType::bid, prod, timesteps[i]);
             bids.insert(bids.end(), currentBids.begin(), currentBids.end());
@@ -151,9 +156,9 @@ vector<Entry> Ledger::matchEntries(string timestamp) {
 
         // Sort markedForDeletion in descending order
         // If we do not sort, the range-for loop may delete earlier indexes
-        // before later ones, causing the vector to shrink This will cause the
+        // before later ones, causing the vector to shrink. This will cause the
         // indexes of the entries we want to delete to shift, which we want to
-        // avoid to keep it simple
+        // avoid
         sort(markedForDeletion.begin(),
              markedForDeletion.end(),
              greater<int>());
@@ -168,21 +173,15 @@ vector<Entry> Ledger::matchEntries(string timestamp) {
 
 /** Abstracted function to generate a sale entry object */
 Entry Ledger::transactionHandler(Entry bid, Entry ask) {
-    Entry sale{ask.price,
-               0,
-               ask.timestamp,
-               ask.product,
-               EntryType::sale};
+    Entry sale{ask.price, 0, ask.timestamp, ask.product, EntryType::sale};
 
-    if (ask.amount >= bid.amount) {
-        sale.amount = bid.amount;
-    } else if (ask.amount < bid.amount) {
-        sale.amount = ask.amount;
-    }
+    if (ask.amount >= bid.amount) sale.amount = bid.amount;
+    else if (ask.amount < bid.amount) sale.amount = ask.amount;
 
     return sale;
 }
 
+// Largely taken from Merklerex
 /** Returns max bid/ask price of a product in the current timestamp */
 double Ledger::getMaxPrice(string product, string timestamp, EntryType type) {
     double price;
@@ -194,14 +193,13 @@ double Ledger::getMaxPrice(string product, string timestamp, EntryType type) {
     // Loop over orders
     for (Entry const& e : orders) {
         // Compare price
-        if (e.price > price) {
-            price = e.price;
-        }
+        if (e.price > price) price = e.price;
     }
 
     return price;
 }
 
+// Largely taken from Merklerex
 /** Returns min bid/ask price of a product in the current timestamp */
 double Ledger::getMinPrice(string product, string timestamp, EntryType type) {
     double price;
@@ -213,9 +211,7 @@ double Ledger::getMinPrice(string product, string timestamp, EntryType type) {
     // Loop over orders
     for (Entry const& e : orders) {
         // Compare price
-        if (e.price < price) {
-            price = e.price;
-        }
+        if (e.price < price) price = e.price;
     }
 
     return price;
@@ -227,19 +223,20 @@ double Ledger::getAvgPrice(string product,
                            string endTime,
                            EntryType type) {
     // Find the starting index in the currentLedger vector
-    int startIndex =
-        distance(currentLedger.begin(),
-                 find_if(currentLedger.begin(), currentLedger.end(), [&](const Entry& e) {
-                     return e.timestamp == startTime;
-                 }));
+    int startIndex = distance(
+        currentLedger.begin(),
+        find_if(currentLedger.begin(),
+                currentLedger.end(),
+                [&](const Entry& e) { return e.timestamp == startTime; }));
 
     double sum = 0;
     int elems = 0;
 
-    // Loop over the currentLedger vector, beginning at the starting index, and ending
-    // when the timestamp of the entry exceeds the current time
+    // Loop over the currentLedger vector, beginning at the starting index, and
+    // ending when the timestamp of the entry exceeds the current time
     for (int i = startIndex; currentLedger[i].timestamp <= endTime; i++) {
-        if (currentLedger[i].orderType == type && currentLedger[i].product == product) {
+        if (currentLedger[i].orderType == type &&
+            currentLedger[i].product == product) {
             sum += currentLedger[i].price;
             elems++;
         }
@@ -256,12 +253,11 @@ double Ledger::predictMin(string product, int timestampIndex, EntryType type) {
     int currentTimeIndex = timestampIndex;
 
     while (currentTimeIndex >= 0) {
-        vector<Entry> orders = getAllEntries(type, product, timesteps[currentTimeIndex]);
+        vector<Entry> orders =
+            getAllEntries(type, product, timesteps[currentTimeIndex]);
         double localMin = orders[0].price;
         for (const Entry& e : orders) {
-            if (e.price < localMin) {
-                localMin = e.price;
-            }
+            if (e.price < localMin) localMin = e.price;
         }
 
         minPred += localMin;
@@ -280,12 +276,11 @@ double Ledger::predictMax(string product, int timestampIndex, EntryType type) {
     int currentTimeIndex = timestampIndex;
 
     while (currentTimeIndex >= 0) {
-        vector<Entry> orders = getAllEntries(type, product, timesteps[currentTimeIndex]);
+        vector<Entry> orders =
+            getAllEntries(type, product, timesteps[currentTimeIndex]);
         double localMax = orders[0].price;
         for (const Entry& e : orders) {
-            if (e.price > localMax) {
-                localMax = e.price;
-            }
+            if (e.price > localMax) localMax = e.price;
         }
 
         maxPred += localMax;
@@ -298,7 +293,8 @@ double Ledger::predictMax(string product, int timestampIndex, EntryType type) {
     return maxPred;
 }
 
-/** Returns the percentage change in the min/max price of a product over a period of time */
+/** Returns the percentage change in the min/max price of a product over a
+ * period of time */
 double Ledger::getChange(string product,
                          int timestampIndex,
                          int steps,
@@ -310,21 +306,29 @@ double Ledger::getChange(string product,
 
     // Get min prices
     if (valueType == "min") {
-        startPrice = getMinPrice(product, timesteps[timestampIndex - steps], type);
+        startPrice =
+            getMinPrice(product, timesteps[timestampIndex - steps], type);
         currPrice = getMinPrice(product, timesteps[timestampIndex], type);
     }
     // Get max prices
     else if (valueType == "max") {
-        startPrice = getMaxPrice(product, timesteps[timestampIndex - steps], type);
+        startPrice =
+            getMaxPrice(product, timesteps[timestampIndex - steps], type);
         currPrice = getMaxPrice(product, timesteps[timestampIndex], type);
     }
     // Get avg prices
     else if (valueType == "avg") {
-        startPrice = getAvgPrice(product, timesteps[timestampIndex - steps], timesteps[timestampIndex - steps], type);
-        currPrice = getAvgPrice(product, timesteps[timestampIndex], timesteps[timestampIndex], type);
+        startPrice = getAvgPrice(product,
+                                 timesteps[timestampIndex - steps],
+                                 timesteps[timestampIndex - steps],
+                                 type);
+        currPrice = getAvgPrice(product,
+                                timesteps[timestampIndex],
+                                timesteps[timestampIndex],
+                                type);
     }
 
-    pChange = (currPrice - startPrice/startPrice)*100;
+    pChange = (currPrice - startPrice / startPrice) * 100;
 
     return pChange;
 }
