@@ -96,6 +96,7 @@ Entry CSVReader::stringsToEntry(vector<string> tokens) {
         throw exception{};
     }
     try {
+        // Changed stod to strtod
         price = strtod(tokens[3].c_str(), NULL);
         amount = strtod(tokens[4].c_str(), NULL);
     } catch (const exception& e) {

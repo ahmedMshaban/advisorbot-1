@@ -61,6 +61,7 @@ vector<Entry> Ledger::getAllEntries(EntryType type,
 /** Returns the earliest timestamp of the ledger */
 string Ledger::getEarliestTime() { return currentLedger[0].timestamp; }
 
+// Modified from Merklerex
 /** Returns the next timestamp in the program */
 string Ledger::getNextTime(string timestamp) {
     // Search for next timestamp

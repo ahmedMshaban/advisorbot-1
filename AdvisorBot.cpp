@@ -47,6 +47,7 @@ vector<string> AdvisorBot::getUserInput() {
     string input;
     cout << "User: ";
     getline(cin, input);
+    // Tokenise input to obtain each word
     vector<string> command = CSVReader::tokenise(input, ' ');
 
     return command;
@@ -304,14 +305,18 @@ void AdvisorBot::printPred(vector<string> command) {
     if (command.size() == 4) {
         EntryType type = Entry::stringToEntryType(command[3]);
 
+        // Validate command args
         if (validProd(command[2]) && validType(type)) {
+            // Check if user is requesting min or max
             if (command[1] == "min") {
                 double minPred =
                     ledger.predictMin(command[2], currentTimeIndex, type);
+
                 advisorPrint({"The predicted minimum " + command[3] + " price of " + command[2] + " is " + to_string(minPred)});
             } else if (command[1] == "max") {
                 double maxPred =
                     ledger.predictMax(command[2], currentTimeIndex, type);
+
                 advisorPrint({"The predicted maximum " + command[3] + " price of " + command[2] + " is " + to_string(maxPred)});
             } else {
                 advisorPrint({"Please enter a valid command",

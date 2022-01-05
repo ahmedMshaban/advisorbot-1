@@ -39,6 +39,8 @@ class Ledger {
 
    private:
     vector<Entry> currentLedger;
+    // Stores the raw, unmodified data of the csv file so that functions that
+    // require historical data can use this
     vector<Entry> original;
     vector<string> getProducts();
     vector<string> getTimesteps();
